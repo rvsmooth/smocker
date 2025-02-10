@@ -1,6 +1,6 @@
 FROM bitnami/minideb:bookworm
 
-# User
+# Build-time variables
 ARG userid=1000
 ARG groupid=1000
 ARG username=aosp
@@ -21,11 +21,14 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get upgrade -y
 # Install apt-utils to make apt run more smoothly
 RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y apt-utils
 
+# Install basic packages
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y sudo wget curl vim 
+
 # Install the packages needed for the build
 RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y git-core gnupg flex bison build-essential \
 	zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev \
 	x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip \
-	fontconfig libncurses5 procps rsync libssl-dev python-is-python3 wget curl 
+	fontconfig libncurses5 procps rsync libssl-dev python-is-python3 
 
 # Download and verify repo
 RUN gpg --recv-key 8BB9AD793E8E6153AF0F9A4416530D5E920F5C65
@@ -33,11 +36,15 @@ RUN curl -o /usr/local/bin/repo https://storage.googleapis.com/git-repo-download
 RUN curl https://storage.googleapis.com/git-repo-downloads/repo.asc | gpg --verify - /usr/local/bin/repo
 RUN chmod a+x /usr/local/bin/repo
 
+# User management
 RUN groupadd -g $groupid $username \
  && useradd -m -s /bin/bash -u $userid -g $groupid $username \
- &&  echo "solanalos ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers \
+ &&  echo "${username} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers \
  && chown -R ${username}:${username} /home/${username} \
- && wget -qO ${starship_file} https://github.com/starship/starship/releases/download/v1.22.1/starship-x86_64-unknown-linux-gnu.tar.gz \
+ && mkdir /aosp && chown $userid:$groupid /aosp && chmod ug+s /aosp
+
+# Eyecandy
+RUN wget -qO ${starship_file} https://github.com/starship/starship/releases/download/v1.22.1/starship-x86_64-unknown-linux-gnu.tar.gz \
  && wget -qO ${fonts_file} https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/JetBrainsMono.zip \
  && mkdir -p ${config} ${fonts_dir} ${starship_dir} ${fonts} \
  && tar -xzf ${starship_file} -C ${starship_dir} \
@@ -54,7 +61,10 @@ RUN echo "deb http://deb.debian.org/debian bullseye main contrib non-free" | tee
 && apt-get install -y python2.7 python-is-python2 python2 \
 && rm -rf ${bullseye}
  
-RUN mkdir /aosp && chown $userid:$groupid /aosp && chmod ug+s /aosp
+# Git configs
+RUN git config --global user.name "Subhashis" \
+ && git config --global user.email "riveeks.smooth@gmail.com" \
+ && git config --global color.ui false
 
 WORKDIR /home/${username}
 USER ${username}
