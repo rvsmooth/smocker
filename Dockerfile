@@ -61,11 +61,12 @@ RUN echo "deb http://deb.debian.org/debian bullseye main contrib non-free" | tee
 && apt-get install -y python2.7 python-is-python2 python2 \
 && rm -rf ${bullseye}
  
-# Git configs
-RUN git config --global user.name "Subhashis" \
- && git config --global user.email "riveeks.smooth@gmail.com" \
- && git config --global color.ui false
-
 WORKDIR /home/${username}
 USER ${username}
 CMD ["/bin/bash"]
+
+# Git configs
+RUN git config --global user.name Subhashis \
+&& git config --global user.email riveeks.smooth@gmail.com \
+&& git config --global color.ui false \
+&& git config --global core.editor vim 
