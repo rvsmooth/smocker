@@ -30,12 +30,6 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y git-core gnupg flex biso
 	x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip \
 	fontconfig libncurses5 procps rsync libssl-dev python-is-python3 less bc ccache
 
-# Download and verify repo
-RUN gpg --recv-key 8BB9AD793E8E6153AF0F9A4416530D5E920F5C65
-RUN curl -o /usr/local/bin/repo https://storage.googleapis.com/git-repo-downloads/repo
-RUN curl https://storage.googleapis.com/git-repo-downloads/repo.asc | gpg --verify - /usr/local/bin/repo
-RUN chmod a+x /usr/local/bin/repo
-
 # User management
 RUN groupadd -g $groupid $username \
  && useradd -m -s /bin/bash -u $userid -g $groupid $username \
@@ -48,12 +42,20 @@ RUN groupadd -g $groupid $username \
  RUN echo 'nameserver 1.1.1.1' > /etc/resolv.conf
 
 # toolchains
- RUN git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r437112.git /toolchain/clang 
- RUN git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 /toolchain/los-4.9-64 
- RUN git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 /toolchain/los-4.9-32 
+ RUN cd /toolchain/ \
+ && curl https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/clang-llvmorg-14-init-9436-g65120988-1.tgz | tar xz \
+ && git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 los-4.9-64 \
+ && git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 los-4.9-32 \
+ && cd -
 
 # ccache 
 RUN ccache -M 1G -o compression=true
+
+# Install python2
+RUN echo "deb http://deb.debian.org/debian bullseye main contrib non-free" | tee ${bullseye} \
+&& apt-get update \
+&& apt-get install -y python2.7 python-is-python2 python2 \
+&& rm -rf ${bullseye}
 
 # Eyecandy
 RUN wget -qO ${starship_file} https://github.com/starship/starship/releases/download/v1.22.1/starship-x86_64-unknown-linux-gnu.tar.gz \
@@ -67,16 +69,9 @@ RUN wget -qO ${starship_file} https://github.com/starship/starship/releases/down
  && starship preset nerd-font-symbols -o ${config}/starship.toml \
  && rm -rf ${starship_dir} ${starship_file} ${fonts_file} ${fonts_dir}
 
- ## Install python2
-RUN echo "deb http://deb.debian.org/debian bullseye main contrib non-free" | tee ${bullseye} \
-&& apt-get update \
-&& apt-get install -y python2.7 python-is-python2 python2 \
-&& rm -rf ${bullseye}
-
 # Environment variables
-ENV PATH /toolchain/clang/bin:/toolchain/los-4.9-64/bin:/toolchain/los-4.9-32/bin:$PATH
-ENV KBUILD_BUILD_HOST smocker-kernel
-
+ENV PATH /toolchain/bin:/toolchain/los-4.9-64/bin:/toolchain/los-4.9-32/bin:$PATH
+ENV KBUILD_BUILD_HOST smocker
 
 WORKDIR /home/${username}
 USER ${username}

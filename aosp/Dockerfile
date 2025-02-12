@@ -55,12 +55,15 @@ RUN wget -qO ${starship_file} https://github.com/starship/starship/releases/down
  && starship preset nerd-font-symbols -o ${config}/starship.toml \
  && rm -rf ${starship_dir} ${starship_file} ${fonts_file} ${fonts_dir}
 
- ## Install python2
+# Install python2
 RUN echo "deb http://deb.debian.org/debian bullseye main contrib non-free" | tee ${bullseye} \
 && apt-get update \
 && apt-get install -y python2.7 python-is-python2 python2 \
 && rm -rf ${bullseye}
- 
+
+# Env
+ENV KBUILD_BUILD_HOST smocker
+
 WORKDIR /home/${username}
 USER ${username}
 CMD ["/bin/bash"]
