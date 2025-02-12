@@ -43,6 +43,12 @@ RUN groupadd -g $groupid $username \
  && chown -R ${username}:${username} /home/${username} \
  && mkdir /aosp && chown $userid:$groupid /aosp && chmod ug+s /aosp
 
+# Install python2
+RUN echo "deb http://deb.debian.org/debian bullseye main contrib non-free" | tee ${bullseye} \
+&& apt-get update \
+&& apt-get install -y python2.7 python-is-python2 python2 \
+&& rm -rf ${bullseye}
+
 # Eyecandy
 RUN wget -qO ${starship_file} https://github.com/starship/starship/releases/download/v1.22.1/starship-x86_64-unknown-linux-gnu.tar.gz \
  && wget -qO ${fonts_file} https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/JetBrainsMono.zip \
@@ -54,12 +60,6 @@ RUN wget -qO ${starship_file} https://github.com/starship/starship/releases/down
  && echo 'eval "$(starship init bash)"' >> /home/${username}/.bashrc \
  && starship preset nerd-font-symbols -o ${config}/starship.toml \
  && rm -rf ${starship_dir} ${starship_file} ${fonts_file} ${fonts_dir}
-
-# Install python2
-RUN echo "deb http://deb.debian.org/debian bullseye main contrib non-free" | tee ${bullseye} \
-&& apt-get update \
-&& apt-get install -y python2.7 python-is-python2 python2 \
-&& rm -rf ${bullseye}
 
 # Env
 ENV KBUILD_BUILD_HOST smocker
