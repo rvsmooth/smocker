@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 git clone "${ANYKERNEL_URL}" Anykernel 
 
 make -j$(nproc) O=out ARCH="${ARCH}" "${DEFCONFIG}"
@@ -17,6 +18,8 @@ make -j$(nproc) O=out \
 
 if [ -d Anykernel ]; then 
 	    zip -r9 "${ZIP_NAME}" anykernel.sh META-INF tools version Image.gz-dtb
+	    /toolchain/bin/tg-upload.sh Anykernel/*.zip
     else
 	    echo "Anykernel not found"
+	    exit 1
 fi
