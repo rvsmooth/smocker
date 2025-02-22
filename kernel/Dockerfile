@@ -50,6 +50,13 @@ RUN groupadd -g $groupid $username \
  && rm /toolchain/lib/libstdc++.so.6 \
  && cd -
 
+# scripts
+RUN cd /toolchain/bin \
+&& curl https://raw.githubusercontent.com/rvsmooth/smocker/refs/heads/main/scripts/tg-upload.sh > tg-upload.sh \
+&& curl https://raw.githubusercontent.com/rvsmooth/smocker/refs/heads/main/scripts/build.sh > build.sh \
+&& chmod +x *.sh \
+&& cd -
+
 # ccache 
 RUN ccache -M 1G -o compression=true
 

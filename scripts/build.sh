@@ -1,6 +1,8 @@
 #!/bin/bash
 
-make -j$(nproc) O=out ARCH=arm64 RMX1821_defconfig
+git clone "${ANYKERNEL_URL}" Anykernel 
+
+make -j$(nproc) O=out ARCH="${ARCH}" "${DEFCONFIG}"
 make -j$(nproc) O=out \
                 ARCH=arm64 \
                 CC=clang \
@@ -13,4 +15,8 @@ make -j$(nproc) O=out \
 		OBJDUMP=llvm-objdump \
 		STRIP=llvm-strip
 
-
+if [ -d Anykernel ]; then 
+	    zip -r9 "${ZIP_NAME}" anykernel.sh META-INF tools version Image.gz-dtb
+    else
+	    echo "Anykernel not found"
+fi
