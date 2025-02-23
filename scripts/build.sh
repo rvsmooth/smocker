@@ -1,7 +1,6 @@
 #!/bin/bash
 
 git clone "${ANYKERNEL_URL}" Anykernel 
-
 make -j$(nproc) O=out ARCH="${ARCH}" "${DEFCONFIG}"
 make -j$(nproc) O=out \
                 ARCH=arm64 \
@@ -17,8 +16,10 @@ make -j$(nproc) O=out \
 
 if [ -d Anykernel ]; then 
 	if [ -f out/arch/arm64/boot/Image.gz-dtb ]; then
+		cp out/arch/arm64/boot/Image.gz-dtb Anykernel
+		cd Anykernel || exit
 		zip -r9 "${ZIP_NAME}" anykernel.sh META-INF tools Image.gz-dtb
-		/toolchain/bin/tg-upload.sh Anykernel/*.zip
+		/toolchain/bin/tg-upload.sh *.zip
 	else
 		echo "KERNEL BUILD FAILED"
 		exit 1
